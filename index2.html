@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WSC | Ultimate Configurator</title>
+    <meta name="description" content="Configure your luxury jet car. Select your engine, color, and reserve your build instantly.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700;900&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#020617',    // Deepest Black/Blue
+                            navy: '#0f172a',    // Secondary Dark
+                            surface: '#1e293b', // Card Surface
+                            royal: '#1d4ed8',   // Primary Blue
+                            electric: '#3b82f6', // Bright Accent
+                            silver: '#e2e8f0',  // Text
+                            gold: '#fbbf24',    // Luxury Accent
+                            success: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'hero-pattern': "linear-gradient(to bottom, rgba(2,6,23,0.3), rgba(2,6,23,0.95)), url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2000&auto=format&fit=crop')",
+                        'card-gradient': "linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%)"
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #020617; color: #f8fafc; }
+        
+        /* Glassmorphism Advanced */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 20px 40px -10px rgba(29, 78, 216, 0.2);
+        }
+
+        /* Custom Form Elements */
+        .custom-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.2em 1.2em;
+        }
+
+        /* Checkbox Styling */
+        .custom-checkbox:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+
+        /* Color Picker */
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.1);
+            position: relative;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .color-option.selected {
+            border-color: #3b82f6;
+            transform: scale(1.15);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+        .color-option.selected::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: white; /* Auto contrast needed in real app, defaulting to white */
+            text-shadow: 0 1px 2px black;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+        }
+
+        /* Animations */
+        .price-update { animation: highlight 0.4s ease; }
+        @keyframes highlight {
+            0% { color: #fff; transform: scale(1.1); }
+            100% { color: #3b82f6; transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-brand-royal selection:text-white">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 glass-panel border-x-0 border-t-0 top-0 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="relative">
+                    <span class="font-serif text-3xl font-black text-white italic tracking-tighter group-hover:text-brand-electric transition-colors">WSC</span>
+                    <div class="absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-electric transition-all group-hover:w-full"></div>
+                </div>
+                <div class="hidden md:block border-l border-white/20 pl-3">
+                    <span class="block text-[0.6rem] uppercase tracking-[0.2em] text-gray-400">Royal Edition</span>
+                </div>
+            </a>
+            
+            <div class="hidden lg:flex items-center gap-8 text-xs font-bold tracking-widest uppercase text-gray-300">
+                <a href="#home" class="hover:text-brand-electric transition-colors">Home</a>
+                <a href="#fleet" class="hover:text-brand-electric transition-colors">Fleet</a>
+                <a href="#features" class="hover:text-brand-electric transition-colors">Engineering</a>
+                <a href="#contact" class="flex items-center gap-2 px-5 py-2 bg-white/5 hover:bg-brand-royal text-white border border-white/10 hover:border-brand-royal transition-all rounded-full">
+                    <i class="fab fa-whatsapp"></i> Contact Factory
+                </a>
+            </div>
+
+            <!-- Mobile Toggle -->
+            <button onclick="toggleMobileMenu()" class="lg:hidden text-2xl text-white hover:text-brand-electric transition-colors">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden absolute top-full left-0 w-full bg-brand-navy/95 backdrop-blur-xl border-t border-white/10 shadow-2xl">
+            <div class="flex flex-col p-6 space-y-6 text-center">
+                <a href="#home" class="text-white font-serif text-lg" onclick="toggleMobileMenu()">Home</a>
+                <a href="#fleet" class="text-white font-serif text-lg" onclick="toggleMobileMenu()">Configure Fleet</a>
+                <a href="#features" class="text-white font-serif text-lg" onclick="toggleMobileMenu()">Features</a>
+                <a href="#contact" class="text-brand-electric font-bold" onclick="toggleMobileMenu()">Contact Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="home" class="relative min-h-screen flex items-center bg-hero-pattern bg-cover bg-center bg-fixed bg-no-repeat">
+        <div class="container mx-auto px-6 pt-20 relative z-10">
+            <div class="max-w-4xl animate-fade-in">
+                <div class="inline-flex items-center gap-3 px-4 py-2 mb-8 border border-brand-electric/30 rounded-full bg-brand-navy/40 backdrop-blur-md">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-electric opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-electric"></span>
+                    </span>
+                    <span class="text-brand-electric text-[10px] font-bold uppercase tracking-[0.2em]">Configurator V2.0 Online</span>
+                </div>
+                
+                <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.1] mb-8 drop-shadow-2xl">
+                    Command <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-white via-brand-electric to-brand-royal">The Ocean.</span>
+                </h1>
+                
+                <p class="text-gray-300 text-sm md:text-lg max-w-xl leading-relaxed mb-10 border-l-4 border-brand-electric pl-6">
+                    Welcome to the <strong>Royal Configurator</strong>. Select from 9 distinct chassis, customize your power unit, choose your finish, and include premium add-ons. 
+                    <span class="block mt-2 text-brand-electric font-medium">Precision Engineered. Luxury Defined.</span>
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <a href="#fleet" class="group relative px-8 py-4 bg-brand-royal hover:bg-brand-electric text-white font-bold text-sm tracking-[0.2em] uppercase overflow-hidden rounded-sm transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)]">
+                        <span class="relative z-10 flex items-center gap-3">Start Building <i class="fas fa-chevron-down group-hover:translate-y-1 transition-transform"></i></span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
+            <i class="fas fa-angle-down text-2xl"></i>
+        </div>
+    </header>
+
+    <!-- Engineering Strip -->
+    <section id="features" class="border-y border-white/5 bg-brand-navy relative overflow-hidden">
+        <div class="absolute inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+        <div class="container mx-auto px-6 py-12 relative z-10">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-white/5">
+                <div class="text-center group">
+                    <i class="fas fa-layer-group text-2xl text-brand-electric mb-3 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-white font-serif font-bold">100% Fiberglass</h3>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Hull Construction</p>
+                </div>
+                <div class="text-center group">
+                    <i class="fas fa-tachometer-alt text-2xl text-brand-electric mb-3 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-white font-serif font-bold">Up to 1.8L</h3>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Supercharged Power</p>
+                </div>
+                <div class="text-center group">
+                    <i class="fas fa-couch text-2xl text-brand-electric mb-3 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-white font-serif font-bold">Marine Leather</h3>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Premium Interior</p>
+                </div>
+                <div class="text-center group">
+                    <i class="fas fa-globe-americas text-2xl text-brand-electric mb-3 group-hover:scale-110 transition-transform"></i>
+                    <h3 class="text-white font-serif font-bold">Worldwide</h3>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mt-1">Secure Shipping</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- THE CONFIGURATOR -->
+    <section id="fleet" class="py-24 bg-brand-dark relative">
+        <div class="container mx-auto px-6 relative z-10">
+            <!-- Header & Filter -->
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                <div>
+                    <h2 class="font-serif text-4xl text-white mb-2">Configure Your Fleet</h2>
+                    <p class="text-gray-400 text-sm">Select a model to customize engine, color, and add-ons.</p>
+                </div>
+                
+                <!-- Filter Buttons -->
+                <div class="flex flex-wrap gap-2 bg-brand-navy/50 p-1.5 rounded-lg border border-white/5">
+                    <button onclick="filterFleet('all')" class="filter-btn active px-4 py-2 rounded text-[10px] font-bold uppercase tracking-wider text-white transition-all hover:bg-brand-electric hover:shadow-lg bg-brand-electric shadow-lg ring-1 ring-white/10" id="btn-all">All Models</button>
+                    <button onclick="filterFleet('sport')" class="filter-btn px-4 py-2 rounded text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-all hover:bg-white/10" id="btn-sport">Sport</button>
+                    <button onclick="filterFleet('family')" class="filter-btn px-4 py-2 rounded text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-all hover:bg-white/10" id="btn-family">Family</button>
+                    <button onclick="filterFleet('luxury')" class="filter-btn px-4 py-2 rounded text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-white transition-all hover:bg-white/10" id="btn-luxury">Luxury</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Grid Container -->
+            <div id="fleet-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <!-- Cards will be injected here by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact & Factory Info -->
+    <section id="contact" class="py-20 bg-gradient-to-b from-brand-navy to-brand-dark border-t border-white/5">
+        <div class="container mx-auto px-6 max-w-5xl">
+            <div class="glass-panel rounded-2xl p-8 md:p-12 text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-brand-electric/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                
+                <h2 class="font-serif text-3xl md:text-4xl text-white mb-6 relative z-10">Ready to Commission?</h2>
+                <p class="text-gray-400 mb-10 max-w-2xl mx-auto relative z-10">
+                    Our concierge team in Cairo is ready to finalize your build slot. 
+                    Direct orders are prioritized. Worldwide shipping logistics available.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 relative z-10">
+                    <a href="tel:+201123180383" class="group flex items-center justify-center gap-4 p-6 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-brand-electric/50 transition-all">
+                        <div class="w-12 h-12 rounded-full bg-brand-electric/20 flex items-center justify-center text-brand-electric group-hover:scale-110 transition-transform">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Direct Line</div>
+                            <div class="text-white font-serif text-lg">+20 112 318 0383</div>
+                        </div>
+                    </a>
+                    
+                    <a href="mailto:ahmedaok24@gmail.com" class="group flex items-center justify-center gap-4 p-6 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-brand-electric/50 transition-all">
+                        <div class="w-12 h-12 rounded-full bg-brand-electric/20 flex items-center justify-center text-brand-electric group-hover:scale-110 transition-transform">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="text-left">
+                            <div class="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Email Concierge</div>
+                            <div class="text-white font-serif text-lg">ahmedaok24@gmail.com</div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 uppercase tracking-widest gap-4">
+                    <span><i class="fas fa-map-marker-alt mr-2"></i> Alexandria Desert Road, 58km, Giza, Cairo</span>
+                    <span>WSC Royal Edition © 2026</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA SOURCE ---
+        const fleetData = [
+            {
+                id: 'type-g',
+                name: 'Type G',
+                category: 'family',
+                tag: 'Off-Road Style',
+                tagColor: 'bg-brand-royal',
+                image: 'https://images.unsplash.com/photo-1540066019607-e5f6928a8a19?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '4-5', length: '5.0 M', beam: '2.0 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 18500 },
+                    { name: 'Mercury 60 HP', price: 26000 },
+                    { name: 'Suzuki 100 HP', price: 29400 },
+                    { name: 'Mercury 115 HP', price: 30000 },
+                    { name: 'Yamaha 1800 CC', price: 38500 },
+                    { name: 'Yamaha 1800 CC SC', price: 41500 }
+                ]
+            },
+            {
+                id: 'type-r',
+                name: 'Type R',
+                category: 'sport',
+                tag: 'Super Sport',
+                tagColor: 'bg-red-700',
+                image: 'https://images.unsplash.com/photo-1605218427306-022ba8c6c6fa?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '5-6', length: '5.0 M', beam: '2.0 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 19500 },
+                    { name: 'Mercury 60 HP', price: 27000 },
+                    { name: 'Suzuki 100 HP', price: 29400 },
+                    { name: 'Mercury 115 HP', price: 30500 },
+                    { name: 'Yamaha 1800 CC', price: 39500 },
+                    { name: 'Yamaha 1800 CC SC', price: 42500 }
+                ]
+            },
+            {
+                id: 'type-mb',
+                name: 'Type MB',
+                category: 'luxury',
+                tag: 'Luxury Saloon',
+                tagColor: 'bg-brand-navy border border-brand-electric',
+                image: 'https://images.unsplash.com/photo-1621996659490-3275b4d0d951?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '8-9', length: '5.0 M', beam: '2.0 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 27000 },
+                    { name: 'Mercury 60 HP', price: 34000 },
+                    { name: 'Suzuki 100 HP', price: 37000 }
+                ]
+            },
+            {
+                id: 'type-c7',
+                name: 'Type C7',
+                category: 'sport',
+                tag: 'American Legend',
+                tagColor: 'bg-blue-900',
+                image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '2', length: '5.0 M', beam: '1.65 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 11500 },
+                    { name: 'Mercury 1050 HP', price: 28500 },
+                    { name: 'Yamaha 1800 CC', price: 31500 },
+                    { name: 'Yamaha 1800 CC SC', price: 34500 }
+                ]
+            },
+            {
+                id: 'type-vw',
+                name: 'Type VW',
+                category: 'family',
+                tag: 'Retro Classic',
+                tagColor: 'bg-orange-700',
+                image: 'https://images.unsplash.com/photo-1549525791-2a07d398d578?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '4', length: '5.0 M', beam: '1.70 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 11500 },
+                    { name: 'Mercury 50 HP', price: 18400 },
+                    { name: 'Suzuki 60 HP', price: 19000 }
+                ]
+            },
+            {
+                id: 'type-x',
+                name: 'Type X',
+                category: 'sport',
+                tag: 'Future Concept',
+                tagColor: 'bg-purple-900',
+                image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '4', length: '5.0 M', beam: '2.0 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 13500 },
+                    { name: 'Mercury 60 HP', price: 20500 },
+                    { name: 'Suzuki 100 HP', price: 23500 },
+                    { name: 'Mercury 115 HP', price: 24500 }
+                ]
+            },
+            {
+                id: 'type-b',
+                name: 'Type B',
+                category: 'luxury',
+                tag: 'Executive',
+                tagColor: 'bg-white text-black',
+                image: 'https://images.unsplash.com/photo-1564353457262-d45036c05a16?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '4-5', length: '5.0 M', beam: '1.75 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 17500 },
+                    { name: 'Mercury 60 HP', price: 25000 },
+                    { name: 'Suzuki 100 HP', price: 27500 },
+                    { name: 'Yamaha 1800 CC', price: 37500 },
+                    { name: 'Yamaha 1800 CC SC', price: 40500 }
+                ]
+            },
+            {
+                id: 'type-f',
+                name: 'Type F',
+                category: 'sport',
+                tag: 'Italian Sport',
+                tagColor: 'bg-green-800',
+                image: 'https://images.unsplash.com/photo-1559982466-9b4869c97b25?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '3', length: '5.0 M', beam: '1.65 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 15000 },
+                    { name: 'Yamaha 1050 CC', price: 32000 },
+                    { name: 'Yamaha 1800 CC', price: 35000 },
+                    { name: 'Yamaha 1800 CC SC', price: 38000 }
+                ]
+            },
+            {
+                id: 'type-c8',
+                name: 'Type C8',
+                category: 'sport',
+                tag: 'Modern Sport',
+                tagColor: 'bg-gray-600',
+                image: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800&auto=format&fit=crop',
+                specs: { pax: '4', length: '5.0 M', beam: '1.65 M' },
+                engines: [
+                    { name: 'Body Only (No Engine)', price: 15000 },
+                    { name: 'Mercury 60 HP', price: 22500 },
+                    { name: 'Suzuki 100 HP', price: 25500 },
+                    { name: 'Mercury 115 HP', price: 26000 }
+                ]
+            }
+        ];
+
+        // --- RENDER LOGIC ---
+        const grid = document.getElementById('fleet-grid');
+        const formatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+        function init() {
+            renderFleet('all');
+        }
+
+        function filterFleet(category) {
+            // Update Buttons UI
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-brand-electric', 'shadow-lg', 'text-white', 'ring-1', 'ring-white/10');
+                btn.classList.add('text-gray-400', 'hover:bg-white/10');
+            });
+            const activeBtn = document.getElementById(`btn-${category}`);
+            activeBtn.classList.remove('text-gray-400', 'hover:bg-white/10');
+            activeBtn.classList.add('bg-brand-electric', 'shadow-lg', 'text-white', 'ring-1', 'ring-white/10');
+
+            // Render
+            renderFleet(category);
+        }
+
+        function renderFleet(filter) {
+            grid.innerHTML = '';
+            
+            const filteredData = filter === 'all' ? fleetData : fleetData.filter(item => item.category === filter);
+
+            filteredData.forEach(car => {
+                const card = document.createElement('article');
+                card.className = 'glass-card rounded-2xl overflow-hidden group hover:shadow-2xl transition-all duration-500 animate-fade-in';
+                card.id = `card-${car.id}`;
+                
+                // Build Engine Options HTML
+                const engineOptions = car.engines.map(eng => `<option value="${eng.price}">${eng.name}</option>`).join('');
+                
+                // Colors HTML
+                const colors = [
+                    {name: 'Midnight Black', hex: '#111'},
+                    {name: 'Pearl White', hex: '#f8f8f8'},
+                    {name: 'Royal Blue', hex: '#1e40af'},
+                    {name: 'Ferrari Red', hex: '#dc2626'},
+                    {name: 'Lambo Yellow', hex: '#facc15'}
+                ].map((c, i) => `
+                    <div onclick="selectColor('${car.id}', '${c.name}', this)" 
+                         class="color-option ${i===0 ? 'selected' : ''}" 
+                         style="background-color: ${c.hex};" 
+                         title="${c.name}">
+                    </div>
+                `).join('');
+
+                card.innerHTML = `
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="${car.image}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0">
+                        <div class="absolute top-4 left-4 ${car.tagColor} backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 uppercase tracking-wider rounded shadow-lg">
+                            ${car.tag}
+                        </div>
+                        <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-brand-surface to-transparent opacity-80"></div>
+                        
+                        <!-- Mini Specs Overlay -->
+                        <div class="absolute bottom-3 left-4 flex gap-4 text-[10px] text-gray-300 font-bold uppercase tracking-wider">
+                            <span title="Passengers"><i class="fas fa-user-friends text-brand-electric mr-1"></i> ${car.specs.pax}</span>
+                            <span title="Length"><i class="fas fa-ruler-horizontal text-brand-electric mr-1"></i> ${car.specs.length}</span>
+                        </div>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex justify-between items-baseline mb-4">
+                            <h3 class="font-serif text-2xl text-white font-bold">${car.name}</h3>
+                            <div class="text-right">
+                                <div class="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Total Est.</div>
+                                <div class="text-xl font-serif font-bold text-brand-electric transition-all" id="price-${car.id}">
+                                    ${formatter.format(car.engines[0].price)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 1. Engine -->
+                        <div class="mb-4">
+                            <label class="text-[10px] uppercase font-bold text-gray-400 mb-2 block flex items-center gap-2">
+                                <i class="fas fa-tachometer-alt text-brand-electric"></i> Power Unit
+                            </label>
+                            <select id="engine-${car.id}" onchange="updateTotal('${car.id}')" 
+                                class="custom-select w-full bg-brand-navy border border-white/10 rounded-lg p-3 text-white text-xs font-bold focus:border-brand-electric focus:ring-1 focus:ring-brand-electric focus:outline-none transition-colors">
+                                ${engineOptions}
+                            </select>
+                        </div>
+
+                        <!-- 2. Add-ons (Checkboxes) -->
+                        <div class="mb-5 grid grid-cols-2 gap-2">
+                            <label class="flex items-center gap-2 p-2 border border-white/5 rounded bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                                <input type="checkbox" id="addon-trailer-${car.id}" value="1500" onchange="updateTotal('${car.id}')" class="custom-checkbox w-4 h-4 rounded bg-brand-navy border-gray-600 text-brand-electric focus:ring-0">
+                                <span class="text-[9px] text-gray-300 font-bold uppercase">Trailer (+$1,500)</span>
+                            </label>
+                            <label class="flex items-center gap-2 p-2 border border-white/5 rounded bg-white/5 cursor-pointer hover:bg-white/10 transition-colors">
+                                <input type="checkbox" id="addon-cover-${car.id}" value="300" onchange="updateTotal('${car.id}')" class="custom-checkbox w-4 h-4 rounded bg-brand-navy border-gray-600 text-brand-electric focus:ring-0">
+                                <span class="text-[9px] text-gray-300 font-bold uppercase">Cover (+$300)</span>
+                            </label>
+                        </div>
+
+                        <!-- 3. Color -->
+                        <div class="mb-6">
+                            <label class="text-[10px] uppercase font-bold text-gray-400 mb-2 block flex items-center gap-2">
+                                <i class="fas fa-palette text-brand-electric"></i> Gel Coat Finish
+                            </label>
+                            <div class="flex gap-3 justify-center bg-brand-navy/50 p-3 rounded-lg border border-white/5 shadow-inner">
+                                ${colors}
+                            </div>
+                            <input type="hidden" id="color-${car.id}" value="Midnight Black">
+                        </div>
+
+                        <!-- 4. Actions -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="sendWhatsApp('${car.id}', '${car.name}')" 
+                                class="flex items-center justify-center gap-2 py-3 bg-brand-success hover:bg-green-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg shadow-lg shadow-green-900/20 hover:shadow-green-900/40 transition-all transform hover:-translate-y-0.5">
+                                <i class="fab fa-whatsapp text-lg"></i> WhatsApp
+                            </button>
+                            <button onclick="sendEmail('${car.id}', '${car.name}')" 
+                                class="flex items-center justify-center gap-2 py-3 bg-brand-navy border border-white/10 hover:bg-white/10 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all transform hover:-translate-y-0.5">
+                                <i class="fas fa-envelope text-lg"></i> Email
+                            </button>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // --- INTERACTIVITY FUNCTIONS ---
+
+        function updateTotal(id) {
+            const engineSelect = document.getElementById(`engine-${id}`);
+            const enginePrice = parseFloat(engineSelect.value);
+            
+            const trailer = document.getElementById(`addon-trailer-${id}`).checked ? 1500 : 0;
+            const cover = document.getElementById(`addon-cover-${id}`).checked ? 300 : 0;
+            
+            const total = enginePrice + trailer + cover;
+            
+            const priceDisplay = document.getElementById(`price-${id}`);
+            priceDisplay.innerText = formatter.format(total);
+            
+            // Re-trigger animation
+            priceDisplay.classList.remove('price-update');
+            void priceDisplay.offsetWidth;
+            priceDisplay.classList.add('price-update');
+        }
+
+        function selectColor(id, colorName, element) {
+            const card = document.getElementById(`card-${id}`);
+            card.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById(`color-${id}`).value = colorName;
+        }
+
+        function sendWhatsApp(id, name) {
+            const engineSelect = document.getElementById(`engine-${id}`);
+            const engineName = engineSelect.options[engineSelect.selectedIndex].text;
+            const color = document.getElementById(`color-${id}`).value;
+            const priceText = document.getElementById(`price-${id}`).innerText;
+            
+            // Check addons
+            let addons = [];
+            if(document.getElementById(`addon-trailer-${id}`).checked) addons.push("Transport Trailer");
+            if(document.getElementById(`addon-cover-${id}`).checked) addons.push("Premium Cover");
+            const addonStr = addons.length > 0 ? addons.join(", ") : "None";
+
+            const message = `*NEW ORDER INQUIRY - WSC*%0A%0AHello, I am interested in configuring a ${name}:%0A%0A- *Engine:* ${engineName}%0A- *Color:* ${color}%0A- *Add-ons:* ${addonStr}%0A- *Estimated Total:* ${priceText}%0A%0APlease confirm availability and production timeline.`;
+            
+            window.open(`https://wa.me/201123180383?text=${message}`, '_blank');
+        }
+
+        function sendEmail(id, name) {
+            const engineSelect = document.getElementById(`engine-${id}`);
+            const engineName = engineSelect.options[engineSelect.selectedIndex].text;
+            const color = document.getElementById(`color-${id}`).value;
+            const priceText = document.getElementById(`price-${id}`).innerText;
+            
+             let addons = [];
+            if(document.getElementById(`addon-trailer-${id}`).checked) addons.push("Transport Trailer");
+            if(document.getElementById(`addon-cover-${id}`).checked) addons.push("Premium Cover");
+            const addonStr = addons.length > 0 ? addons.join(", ") : "None";
+
+            const subject = `WSC Order Inquiry: ${name} (${color})`;
+            const body = `Hello WSC Team,%0D%0A%0D%0AI would like to inquire about the following build:%0D%0A%0D%0AModel: ${name}%0D%0AEngine: ${engineName}%0D%0AGel Coat Color: ${color}%0D%0AAdd-ons: ${addonStr}%0D%0AEst. Total: ${priceText}%0D%0A%0D%0APlease provide shipping details for my location.`;
+            
+            window.location.href = `mailto:ahmedaok24@gmail.com?subject=${encodeURIComponent(subject)}&body=${body}`;
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
